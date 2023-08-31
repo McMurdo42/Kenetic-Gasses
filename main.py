@@ -3,14 +3,14 @@ import tkinter
 from random import *
 import time
 
-size = 4
+size = 30
 windowWidth = 600
 windowHeight = 600
 gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
 timestep = 0.01
 partlist = []
-num = 50
+num = 5
 vel = 10
 
 window = tkinter.Tk()
@@ -27,14 +27,14 @@ class Particle:
         self.vely = vely
         self.col = col
 
-def create(posx,posy,velx,vely):
-    newPart = Particle(canvas.create_oval(posx-5,posy-5,posx+5,posy+5,fill="red",outline="white"),posx,posy,velx,vely,False)
+def create(posx,posy,velx,vely,size):
+    newPart = Particle(canvas.create_oval(posx-size,posy-size,posx+size,posy+size,fill="red",outline="white"),posx,posy,velx,vely,False)
     return newPart
 
 def collision(part1,part2):
-    phi = atan((part1.posy-part2.posy)/(part1.posx-part2.posx))
-    theta1 = atan(part1.vely/part1.velx)
-    theta2 = atan(part2.vely/part2.vely)
+    phi = -(atan2((part1.posy-part2.posy),(part1.posx-part2.posx)))
+    theta1 = atan2(part1.vely,part1.velx)
+    theta2 = atan2(part2.vely,part2.vely)
     vel1 = sqrt(part1.velx*part1.velx+part1.vely*part1.vely)
     vel2 = sqrt(part2.velx*part2.velx+part2.vely*part2.vely)
     vel1x = ((2*vel2*cos(theta2-phi)*cos(phi))/2)+(vel1*sin(theta1-phi)*cos(phi+1.5708))
@@ -48,12 +48,12 @@ def mover(part,timestep):
     part.posy = part.posy + timestep*part.vely
     return part
 
-def colCheck(partlist,boundx,boundy,partcount):
+def colCheck(partlist,boundx,boundy,partcount,size):
     for x in range(0,partcount):
         if partlist[x].col == False:
             for y in range(0,partcount):
                 if partlist[x].ID != partlist[y].ID and partlist[y].col == False:
-                    if ((partlist[x].posx-partlist[y].posx)**2)+((partlist[x].posy-partlist[y].posy)**2) <= 100:
+                    if ((partlist[x].posx-partlist[y].posx)**2)+((partlist[x].posy-partlist[y].posy)**2) <= (size*2)**2:
                         partlist[y].col = True
                         partlist[x].col = True
                         newvel = collision(partlist[x],partlist[y])
@@ -61,22 +61,22 @@ def colCheck(partlist,boundx,boundy,partcount):
                         partlist[x].vely = newvel[1]
                         partlist[y].velx = newvel[2]
                         partlist[y].vely = newvel[3]
-            if partlist[x].posx <= 0 or partlist[x].posx >= boundx:
+            if partlist[x].posx <= 0 or partlist[x].posx >= boundx - size*2:
                 partlist[x].col = True
                 partlist[x].velx = -partlist[x].velx
-            if partlist[x].posy <= 0 or partlist[x].posy >= boundy:
+            if partlist[x].posy <= 0 or partlist[x].posy >= boundy - size*2:
                 partlist[x].col = True
                 partlist[x].vely = -partlist[x].vely
     return partlist
 
-def randomcreate(num,vel,partlist,boundx,boundy):
+def randomcreate(num,vel,partlist,boundx,boundy,size):
     for x in range(0,num):
         theta = random()*2*3.14159265
-        partlist.append(create(randint(0,boundx),randint(0,boundy),vel*cos(theta),vel*sin(theta)))
+        partlist.append(create(randint(0,boundx),randint(0,boundy),vel*cos(theta),vel*sin(theta),size))
     return partlist
 
-def main(partlist,timestep,boundx,boundy,partcount,canvas):
-    partlist = colCheck(partlist,boundx,boundy,partcount)
+def main(partlist,timestep,boundx,boundy,partcount,canvas,size):
+    partlist = colCheck(partlist,boundx,boundy,partcount,size)
     for x in range(0,partcount):
         partlist[x] = mover(partlist[x],timestep)
         partlist[x].col = False
@@ -84,7 +84,7 @@ def main(partlist,timestep,boundx,boundy,partcount,canvas):
     canvas.update()
 
 
-partlist = randomcreate(num,vel,partlist,windowWidth,windowHeight)
+partlist = randomcreate(num,vel,partlist,windowWidth,windowHeight,size)
 
 while True:
-    main(partlist,timestep,windowWidth,windowHeight,num,canvas)
+    main(partlist,timestep,windowWidth,windowHeight,num,canvas,size)
