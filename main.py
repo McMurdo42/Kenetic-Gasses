@@ -10,7 +10,7 @@ gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
 timestep = 0.1
 partlist = []
-num = 50
+num = 10
 vel = 10
 
 window = tkinter.Tk()
@@ -38,6 +38,14 @@ def collision(part1,part2,size):
     theta2 = atan2(part2.vely,part2.vely)
     vel1 = sqrt(part1.velx*part1.velx+part1.vely*part1.vely)
     vel2 = sqrt(part2.velx*part2.velx+part2.vely*part2.vely)
+    if part1.velx == 0:
+        m = part1.vely
+    else:
+        m = part1.vely/part1.velx
+    x = ((part1.velx/m)+part1.vely)/(m+(1/m))
+    y = (-x/m)+(part1.velx/m)+part1.vely
+    
+    '''
     vel1x = ((2*vel2*cos(theta2-phi)*cos(phi))/2)+(vel1*sin(theta1-phi)*cos(phi+1.5708))
     vel1y = (((2*vel2*cos(theta2-phi)*sin(phi))/2)+(vel1*sin(theta1-phi)*sin(phi+1.5708)))
     vel2x = ((2*vel1*cos(theta1-phi)*cos(phi))/2)+(vel2*sin(theta2-phi)*cos(phi+1.5708))
@@ -48,6 +56,7 @@ def collision(part1,part2,size):
     pos1y = size*sin(phi)+midy
     pos2x = -size*cos(phi)+midx
     pos2y = -size*sin(phi)+midy
+    '''
     return vel1x,vel1y,vel2x,vel2y,pos1x,pos1y,pos2x,pos2y
 
 def mover(part,timestep):
