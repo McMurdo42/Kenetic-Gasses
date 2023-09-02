@@ -3,19 +3,19 @@ import tkinter
 from random import *
 import time
 
-size = 3
+size = 10
 windowWidth = 600
 windowHeight = 600
 gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
 timestep = 0.1
 partlist = []
-num = 50
-vel = 10
+num = 60
+vel = 5
 
 window = tkinter.Tk()
 canvas = tkinter.Canvas(window, width=windowWidth,height=windowHeight, bg="white")
-text = canvas.create_text(windowWidth/2,10,text=vel,fill="black",font=('Helvetica 15 bold'))
+text = canvas.create_text(windowWidth/2,10,text=vel,fill="black",font=('Courier 15 bold'))
 canvas.pack()
 
 
@@ -32,78 +32,88 @@ def create(posx,posy,velx,vely,size):
     newPart = Particle(canvas.create_oval(posx-size,posy-size,posx+size,posy+size,fill="red",outline="white"),posx,posy,velx,vely,False)
     return newPart
 
-def collision(part1,part2,size):
-    phi = -(atan2((part1.posy-part2.posy),(part1.posx-part2.posx)))
-    theta1 = atan2(part1.vely,part1.velx)
-    theta2 = atan2(part2.vely,part2.vely)
-    vel1 = sqrt(part1.velx*part1.velx+part1.vely*part1.vely)
-    vel2 = sqrt(part2.velx*part2.velx+part2.vely*part2.vely)
-    vel1x = ((2*vel2*cos(theta2-phi)*cos(phi))/2)+(vel1*sin(theta1-phi)*cos(phi+1.5708))
-    vel1y = (((2*vel2*cos(theta2-phi)*sin(phi))/2)+(vel1*sin(theta1-phi)*sin(phi+1.5708)))
-    vel2x = ((2*vel1*cos(theta1-phi)*cos(phi))/2)+(vel2*sin(theta2-phi)*cos(phi+1.5708))
-    vel2y = (((2*vel1*cos(theta1-phi)*sin(phi))/2)+(vel2*sin(theta2-phi)*sin(phi+1.5708)))
-    midx = (part1.posx+part2.posx)/2
-    midy = (part1.posy+part2.posy)/2
-    pos1x = size*cos(phi)+midx
-    pos1y = size*sin(phi)+midy
-    pos2x = -size*cos(phi)+midx
-    pos2y = -size*sin(phi)+midy
-    return vel1x,vel1y,vel2x,vel2y,pos1x,pos1y,pos2x,pos2y
-
-def mover(part,timestep):
-    part.posx = part.posx + timestep*part.velx
-    part.posy = part.posy + timestep*part.vely
-    return part
-
 def colCheck(partlist,boundx,boundy,partcount,size):
     for x in range(0,partcount):
         if partlist[x].col == False:
-            for y in range(0,partcount):
-                if partlist[x].ID != partlist[y].ID and partlist[y].col == False:
-                    if ((partlist[x].posx-partlist[y].posx)**2)+((partlist[x].posy-partlist[y].posy)**2) <= (size*2)**2:
-                        partlist[y].col = True
-                        partlist[x].col = True
-                        newvel = collision(partlist[x],partlist[y],size)
-                        partlist[x].velx = newvel[0]
-                        partlist[x].vely = newvel[1]
-                        partlist[y].velx = newvel[2]
-                        partlist[y].vely = newvel[3]
-                        partlist[x].posx = newvel[4]
-                        partlist[x].posy = newvel[5]
-                        partlist[y].posx = newvel[6]
-                        partlist[y].posy = newvel[7]
             if partlist[x].posx <= 0 or partlist[x].posx >= boundx - size*2:
                 partlist[x].col = True
-                partlist[x].velx = -partlist[x].velx
                 if partlist[x].posx <= 0:
-                    partlist[x].posx = 0
+                    partlist[x].velx = abs(partlist[x].velx)
                 else:
-                    partlist[x].posx = boundx - size*2
+                    partlist[x].velx = -abs(partlist[x].velx)
             if partlist[x].posy <= 20 or partlist[x].posy >= boundy - size*2:
                 partlist[x].col = True
-                partlist[x].vely = -partlist[x].vely
                 if partlist[x].posy <= 20:
-                    partlist[x].posy = 20
+                    partlist[x].vely = abs(partlist[x].vely)
                 else:
-                    partlist[x].posy = boundy - size*2
+                    partlist[x].vely = -abs(partlist[x].vely)
     return partlist
 
 def randomcreate(num,vel,partlist,boundx,boundy,size):
     for x in range(0,num):
         theta = random()*2*3.14159265
-        partlist.append(create(randint(0,boundx),randint(0,boundy),vel*cos(theta),vel*sin(theta),size))
+        partlist.append(create(randint(0,boundx-(size*2)),randint(20,boundy-(size*2)),vel*cos(theta),vel*sin(theta),size))
     return partlist
+
+
+
+def forces(partlist, Current, size):
+    currplanet = partlist[Current]
+    forcex = 0
+    forcey = 0
+    for item in partlist:
+        if currplanet.ID != item.ID:
+            distance = sqrt(((partlist[Current].posx - item.posx)**2) + ((partlist[Current].posy - item.posy)**2))
+            if distance > 2*size:
+                ##force = (6.67428 * (10 ** -11)) * (2/((distance)**2))
+                force = (1000) * (1/(((distance)**2)))
+            else:
+                force = (1000) * (1/(((distance)**2)))
+            forcex += force * ((partlist[Current].posx-item.posx)/distance)
+            forcey += force * ((partlist[Current].posy-item.posy)/distance)
+    force = [forcex, forcey]
+    return force
+
+def acceleration(force, mass):
+    accel = force/mass
+    return accel
+
+def velocity(accel, vel, TimeStep):
+    vel = vel + (accel * TimeStep)
+    return vel
+
+def movement(velx, vely, posx, posy, timestep):
+    posx = posx + (velx * timestep)
+    posy = posy + (vely * timestep)
+    pos = [posx, posy]
+    return pos
+
+def step(partlist, Current, forceList,timestep):
+    force = forceList[Current]
+    partlist[Current].velx = velocity(acceleration(force[0], 1), partlist[Current].velx,timestep)
+    partlist[Current].vely = velocity(acceleration(force[1], 1), partlist[Current].vely,timestep)
+    newpos = movement(partlist[Current].velx, partlist[Current].vely, partlist[Current].posx, partlist[Current].posy,timestep)
+    partlist[Current].posx = newpos[0]
+    partlist[Current].posy = newpos[1]
+    return partlist
+
+
+
+
 
 def main(partlist,timestep,boundx,boundy,partcount,canvas,size,text):
     total = 0
+    forcelist = []
     partlist = colCheck(partlist,boundx,boundy,partcount,size)
-    for x in range(0,partcount):
-        partlist[x] = mover(partlist[x],timestep)
-        partlist[x].col = False
-        canvas.moveto(partlist[x].ID,round(partlist[x].posx),round(partlist[x].posy))
+    for current in range(0,partcount):
+        forcelist.append(forces(partlist, current, size))
+    for current in range(0,partcount):
+        partlist = step(partlist, current, forcelist, timestep)
+        partlist[current].col = False
+        canvas.moveto(partlist[current].ID,round(partlist[current].posx),round(partlist[current].posy))
     for x in range(0,partcount):
         total += sqrt((partlist[x].velx*partlist[x].velx)+(partlist[x].vely*partlist[x].vely))
-    mean = total/partcount
+    mean = round((total/partcount)*100)/100
     canvas.itemconfigure(text,text=(mean))
     canvas.update()
 
