@@ -2,15 +2,16 @@ from math import *
 import tkinter
 from random import *
 import time
+import numpy as np
 
-size = 3
+size = 50
 windowWidth = 600
 windowHeight = 600
 gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
-timestep = 0.1
+timestep = 0.001
 partlist = []
-num = 10
+num = 2
 vel = 10
 
 window = tkinter.Tk()
@@ -33,18 +34,25 @@ def create(posx,posy,velx,vely,size):
     return newPart
 
 def collision(part1,part2,size):
-    phi = -(atan2((part1.posy-part2.posy),(part1.posx-part2.posx)))
-    theta1 = atan2(part1.vely,part1.velx)
-    theta2 = atan2(part2.vely,part2.vely)
-    vel1 = sqrt(part1.velx*part1.velx+part1.vely*part1.vely)
-    vel2 = sqrt(part2.velx*part2.velx+part2.vely*part2.vely)
-    if part1.velx == 0:
-        m = part1.vely
-    else:
-        m = part1.vely/part1.velx
-    x = ((part1.velx/m)+part1.vely)/(m+(1/m))
-    y = (-x/m)+(part1.velx/m)+part1.vely
-    
+    pos1 = [part1.posx,part1.posy]
+    pos2 = [part2.posx,part2.posy]
+    vel1 = [part1.velx,part1.vely]
+    vel2 = [part2.velx,part2.vely]
+    disp = np.subtract(pos2,pos1)
+    dispperp = [disp[1],-disp[0]]
+    dispmag = abs(disp)
+    velb = ((np.dot(vel1,disp/dispmag)*(disp/dispmag))-(np.dot(vel2,dispperp/dispmag)*(dispperp/dispmag)))
+    vela = ((np.dot(vel2,disp/dispmag)*(disp/dispmag))-(np.dot(vel1,dispperp/dispmag)*(dispperp/dispmag)))
+    vel1x = vela[0]
+    vel1y = vela[1]
+    vel2x = velb[0]
+    vel2y = velb[1]
+    pos1x = part1.posx
+    pos1y = part1.posy
+    pos2x = part2.posx
+    pos2y = part2.posy
+
+
     '''
     vel1x = ((2*vel2*cos(theta2-phi)*cos(phi))/2)+(vel1*sin(theta1-phi)*cos(phi+1.5708))
     vel1y = (((2*vel2*cos(theta2-phi)*sin(phi))/2)+(vel1*sin(theta1-phi)*sin(phi+1.5708)))
