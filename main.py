@@ -4,14 +4,14 @@ from random import *
 import time
 import numpy as np
 
-size = 50
+size = 5
 windowWidth = 600
 windowHeight = 600
 gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
-timestep = 0.001
+timestep = 0.05
 partlist = []
-num = 2
+num = 50
 vel = 10
 
 window = tkinter.Tk()
@@ -40,31 +40,23 @@ def collision(part1,part2,size):
     vel2 = [part2.velx,part2.vely]
     disp = np.subtract(pos2,pos1)
     dispperp = [disp[1],-disp[0]]
-    dispmag = abs(disp)
-    velb = ((np.dot(vel1,disp/dispmag)*(disp/dispmag))-(np.dot(vel2,dispperp/dispmag)*(dispperp/dispmag)))
-    vela = ((np.dot(vel2,disp/dispmag)*(disp/dispmag))-(np.dot(vel1,dispperp/dispmag)*(dispperp/dispmag)))
-    vel1x = vela[0]
-    vel1y = vela[1]
-    vel2x = velb[0]
-    vel2y = velb[1]
+    dispmag = sqrt((disp[0]**2)+(disp[1]**2))
+    velb = np.add(np.multiply(np.dot(vel1,np.divide(disp,dispmag)),(np.divide(disp,dispmag))),np.multiply(np.dot(vel2,np.divide(dispperp,dispmag)),np.divide(dispperp,dispmag)))
+    vela = np.add(np.multiply(np.dot(vel2,np.divide(disp,dispmag)),(np.divide(disp,dispmag))),np.multiply(np.dot(vel1,np.divide(dispperp,dispmag)),np.divide(dispperp,dispmag)))
+    if np.dot(disp,np.subtract(vel2,vel1)) > 0:
+        vel1x = part1.velx
+        vel1y = part1.vely
+        vel2x = part2.velx
+        vel2y = part2.vely
+    else:
+        vel1x = vela[0]
+        vel1y = vela[1]
+        vel2x = velb[0]
+        vel2y = velb[1]
     pos1x = part1.posx
     pos1y = part1.posy
     pos2x = part2.posx
     pos2y = part2.posy
-
-
-    '''
-    vel1x = ((2*vel2*cos(theta2-phi)*cos(phi))/2)+(vel1*sin(theta1-phi)*cos(phi+1.5708))
-    vel1y = (((2*vel2*cos(theta2-phi)*sin(phi))/2)+(vel1*sin(theta1-phi)*sin(phi+1.5708)))
-    vel2x = ((2*vel1*cos(theta1-phi)*cos(phi))/2)+(vel2*sin(theta2-phi)*cos(phi+1.5708))
-    vel2y = (((2*vel1*cos(theta1-phi)*sin(phi))/2)+(vel2*sin(theta2-phi)*sin(phi+1.5708)))
-    midx = (part1.posx+part2.posx)/2
-    midy = (part1.posy+part2.posy)/2
-    pos1x = size*cos(phi)+midx
-    pos1y = size*sin(phi)+midy
-    pos2x = -size*cos(phi)+midx
-    pos2y = -size*sin(phi)+midy
-    '''
     return vel1x,vel1y,vel2x,vel2y,pos1x,pos1y,pos2x,pos2y
 
 def mover(part,timestep):
@@ -108,7 +100,13 @@ def colCheck(partlist,boundx,boundy,partcount,size):
 def randomcreate(num,vel,partlist,boundx,boundy,size):
     for x in range(0,num):
         theta = random()*2*3.14159265
-        partlist.append(create(randint(0,boundx),randint(0,boundy),vel*cos(theta),vel*sin(theta),size))
+        xpos = randint(0,boundx)
+        ypos = randint(0,boundy)
+        for part in partlist:
+            while ((xpos-part.posx)**2)+((ypos-part.posy)**2) < size*2:
+                xpos = randint(0,boundx)
+                ypos = randint(0,boundy)
+        partlist.append(create(xpos,ypos,vel*cos(theta),vel*sin(theta),size))
     return partlist
 
 def main(partlist,timestep,boundx,boundy,partcount,canvas,size,text):
