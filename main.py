@@ -4,14 +4,14 @@ from random import *
 import time
 import numpy as np
 
-size = 5
+size = 1
 windowWidth = 600
 windowHeight = 600
 gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
 timestep = 0.05
 partlist = []
-num = 50
+num = 500
 vel = 10
 
 window = tkinter.Tk()
@@ -67,7 +67,7 @@ def mover(part,timestep):
 def colCheck(partlist,boundx,boundy,partcount,size):
     for x in range(0,partcount):
         if partlist[x].col == False:
-            for y in range(0,partcount):
+            for y in range(x+1,partcount):
                 if partlist[x].ID != partlist[y].ID and partlist[y].col == False:
                     if ((partlist[x].posx-partlist[y].posx)**2)+((partlist[x].posy-partlist[y].posy)**2) <= (size*2)**2:
                         partlist[y].col = True
