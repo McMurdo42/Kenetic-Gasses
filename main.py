@@ -4,14 +4,14 @@ from random import *
 import time
 import numpy as np
 
-size = 1
+size = 10
 windowWidth = 600
 windowHeight = 600
 gridx = int(windowWidth/size)
 gridy = int(windowHeight/size)
 timestep = 0.05
 partlist = []
-num = 500
+num = 50
 vel = 10
 
 window = tkinter.Tk()
